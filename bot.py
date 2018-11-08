@@ -18,15 +18,23 @@ class Bot(Run):
         self.messageHandler()
 
     def parse_help(self, commands):
-        pass
+        print(self.commands())
 
     def messageController(self, message):
         print(message)
         for command in self.commands:
+            if "!help" in message:
+                mes = "Команды для чата: "
+                for com in self.commands:
+                    description = self.db.get_description(com)
+                    mes += "%s - % s :: " % (com, description)
+                self.sendMessage(mes)
+                break
             if command in message:
                 print("message = command")
                 self.sendMessage(self.db.get_action(command))
                 break
+
 
     def messageHandler(self):
         while True:
@@ -72,7 +80,7 @@ class Bot(Run):
         messageTemp = "PRIVMSG #" + self.CHANNEL + " :" + self.PMSG + message
         s.send((messageTemp + "\r\n").encode())
         print("message \"%s\" sended" % message)
-        time.sleep(1.5)
+        # time.sleep(1.5)
 
 
 bot = Bot(PASS, BOT, CHANNEL, OWNER)

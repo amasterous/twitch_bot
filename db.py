@@ -1,5 +1,4 @@
 import sqlite3
-
 """
 try:
     cursor.execute(sql_statement)
@@ -26,7 +25,7 @@ class DB:
 
     def get_action(self, command: str) -> list:
         result = self.cursor.execute(
-            "SELECT * FROM commands where command = '%s'" % command)
+            "SELECT * FROM commands where command = ?", command)
         result = self.cursor.fetchone()
         return result[2]  # возвращает action
 
@@ -37,7 +36,15 @@ class DB:
             res.append(asd[1])
         return res
 
-    def create_new_command(self, command: str, action: str,
+    def get_description(self, command):
+        result = self.cursor.execute(
+            "SELECT * FROM commands where command = :command",
+            {'command': command}
+            )
+        result = self.cursor.fetchone()
+        return result[6]
+
+    def create_new_command(self, command: str, action: str, description: str,
                            notsmile=True, private=False):
         """
         command - ну сама команда очевидно типа !help
@@ -57,7 +64,9 @@ class DB:
             error += "it should be one word\n"
         if error != "error: ":
             return error
-
+        if not command or not action or not description:
+            error += "что - то не заполнено"
+            return error
         # lets check if this command already exist
         coms = self.get_commands()
         for com in coms:
@@ -116,11 +125,15 @@ class DB:
 
 if __name__ == '__main__':
     db = DB('twitch.db')
-    db.create_new_command("!simple", "ты пидор")
-    # asd = db.get_commands()
-    # for sad in asd:
-    #     print("command %s\naction %s" % (sad[0], sad[1]))
 
-    # check_command("!steam", asd)
+    commands = db.get_commands()
+    message = "commands:"
+
+    for com in commands:
+        action = db.get_action(com)
+        message += """
+        %s = %s
+        """ % (com, action)
 
     db.close_connection()
+
